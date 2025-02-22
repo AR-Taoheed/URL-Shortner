@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"math/rand"
 	"time"
+	"os"
 )
 
 // URLShortner Type is a struct that holds the URLs and their time of creation
@@ -26,6 +28,8 @@ func NewURLShortener() *URLShortener{
 		urls: make(map[string]URLEntry),
 	}
 }
+
+
 
 func (us *URLShortener) generateShortAlias() string {
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -53,6 +57,10 @@ func (us *URLShortener) AddURL(originalURL string) string {
 	}
 	us.urls[alias] = entry
 	return alias
+}
+
+func (us *URLShortener) ListURLs() map[string]URLEntry {
+	return us.urls
 }
 
 func (us *URLShortener) GetOriginalURL(alias string) (string, error) {
@@ -87,8 +95,14 @@ func (us *URLShortener) DeleteURL(alias string) error{
 
 func main() {
 	shortener := NewURLShortener()
-	alias := shortener.AddURL("https://www.github.com")
-	fmt.Println("Short URL: ", alias)
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Println("Enter URL to shorten: ")
+	originalURL, _ := reader.ReadString('\n')
+	
+	originalURL = originalURL[:len(originalURL)-1] // remove the newline character
+
+	alias := shortener.AddURL(originalURL)
+	fmt.Println("Short URL: bit.ly/"+alias)
 
 	originalURL, err := shortener.GetOriginalURL(alias)
 	if err != nil{
@@ -100,6 +114,9 @@ func main() {
 	}	else{
 		fmt.Println("Clicks: ", clicks)
 	}
+	// List the available URL locations
+	list := shortener.ListURLs()
+	fmt.Println("List of URLs: ", list)
 
 	err = shortener.DeleteURL(alias)
 	if err != nil{
